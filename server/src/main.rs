@@ -9,5 +9,7 @@ async fn main() {
         }
     };
 
-    println!("Hello, world!: {}", profile);
+    server::listener::http_main(&settings)
+        .await
+        .expect("somethings went wrong");
 }
