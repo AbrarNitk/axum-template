@@ -1,0 +1,71 @@
+[workspace]
+members = ["server"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["AbrarNitk <abrar.nitk@gmail.com>"]
+description = "This repository contains code related to web development in axum Rust"
+publish = false
+
+[profile.dev]
+opt-level = 0
+debug = true
+lto = false
+debug-assertions = true
+panic = 'unwind'
+incremental = true
+overflow-checks = true
+
+
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = false
+debug-assertions = false
+codegen-units = 1
+panic = 'unwind'
+incremental = false
+overflow-checks = false
+
+
+# The testing profile, used for `cargo test`.
+[profile.test]
+opt-level = 0
+debug = 2
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
+panic = 'unwind'
+incremental = true
+overflow-checks = true
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace.dependencies]
+tokio = { version = "1.35", features = ["full"] } # later we can reduce it to what we actually need
+axum = "0.7"
+thiserror = "1.0"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+ulid = { version = "1.1", features = ["serde"] }
+config = "0.13"
+
+# logs and tracing related deps
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+opentelemetry = "0.21.0"
+opentelemetry_sdk = { version = "0.21", features = ["rt-tokio"] }
+tracing-opentelemetry = "0.22"
+opentelemetry-otlp = { version = "0.14", features = ["http-proto", "tls"] }
+opentelemetry-stdout = { version = "0.2", features = ["trace"] }
+opentelemetry-semantic-conventions = "0.13"
+tracing-bunyan-formatter = "0.3"
+
+
