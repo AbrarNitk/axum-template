@@ -10,13 +10,7 @@ pub enum ControllerError {
 }
 
 impl ResponseError for ControllerError {
-    fn status_code(&self) -> axum::http::StatusCode {
-        match self {
-            ControllerError::TemplateService(service_err) => service_err.status_code(),
-            ControllerError::UserService(service_err) => service_err.status_code(),
-        }
-    }
-
+    // Only implement error_code - status_code is automatically derived
     fn error_code(&self) -> crate::response::error::ErrorCode {
         match self {
             ControllerError::TemplateService(service_err) => service_err.error_code(),

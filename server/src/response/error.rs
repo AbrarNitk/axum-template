@@ -9,6 +9,18 @@ pub enum ErrorCode {
     UnAuthorized,
 }
 
+// Implement conversion from ErrorCode to StatusCode
+impl From<ErrorCode> for StatusCode {
+    fn from(error_code: ErrorCode) -> Self {
+        match error_code {
+            ErrorCode::NotFound => StatusCode::NOT_FOUND,
+            ErrorCode::BadRequest => StatusCode::BAD_REQUEST,
+            ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
+            ErrorCode::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+
 #[derive(serde::Serialize)]
 pub struct ApiError {
     trace_id: String,
@@ -47,8 +59,13 @@ impl IntoResponse for ApiError {
 }
 
 pub trait ResponseError: std::fmt::Debug + std::fmt::Display + std::error::Error {
-    fn status_code(&self) -> StatusCode;
     fn error_code(&self) -> ErrorCode;
+
+    // Automatically derive status code from error code
+    // Can be overridden for special cases
+    fn status_code(&self) -> StatusCode {
+        self.error_code().into()
+    }
 
     // User-friendly message (can override thiserror message)
     fn user_message(&self) -> String {

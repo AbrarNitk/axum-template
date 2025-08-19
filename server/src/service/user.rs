@@ -14,15 +14,7 @@ pub enum UserServiceError {
 }
 
 impl ResponseError for UserServiceError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            UserServiceError::UserNotFound(_) => StatusCode::NOT_FOUND,
-            UserServiceError::InvalidEmail(_) => StatusCode::BAD_REQUEST,
-            UserServiceError::UserAlreadyExists => StatusCode::CONFLICT,
-            UserServiceError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-
+    // Only implement error_code - status_code is automatically derived
     fn error_code(&self) -> ErrorCode {
         match self {
             UserServiceError::UserNotFound(_) => ErrorCode::NotFound,

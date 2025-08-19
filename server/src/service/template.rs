@@ -28,15 +28,7 @@ pub enum ServiceError {
 }
 
 impl ResponseError for ServiceError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            ServiceError::NotFound(_) => StatusCode::NOT_FOUND,
-            ServiceError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
-            ServiceError::BadRequest => StatusCode::BAD_REQUEST,
-            ServiceError::UnAuthorized => StatusCode::UNAUTHORIZED,
-        }
-    }
-
+    // Only implement error_code - status_code is automatically derived
     fn error_code(&self) -> ErrorCode {
         match self {
             ServiceError::NotFound(_) => ErrorCode::NotFound,

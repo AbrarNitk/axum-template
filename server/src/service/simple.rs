@@ -10,13 +10,7 @@ pub enum SimpleServiceError {
 }
 
 impl ResponseError for SimpleServiceError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            SimpleServiceError::SimpleError => StatusCode::BAD_REQUEST,
-            SimpleServiceError::AnotherError => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-
+    // Only implement error_code - status_code is automatically derived
     fn error_code(&self) -> ErrorCode {
         match self {
             SimpleServiceError::SimpleError => ErrorCode::BadRequest,
