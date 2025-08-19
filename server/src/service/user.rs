@@ -1,4 +1,4 @@
-use crate::response::error::{ErrorCode, ServiceErrorMapping};
+use crate::response::error::{ErrorCode, ResponseError};
 use axum::http::StatusCode;
 
 #[derive(thiserror::Error, Debug)]
@@ -13,8 +13,8 @@ pub enum UserServiceError {
     DatabaseError(String),
 }
 
-impl ServiceErrorMapping for UserServiceError {
-    fn map_to_status_code(&self) -> StatusCode {
+impl ResponseError for UserServiceError {
+    fn status_code(&self) -> StatusCode {
         match self {
             UserServiceError::UserNotFound(_) => StatusCode::NOT_FOUND,
             UserServiceError::InvalidEmail(_) => StatusCode::BAD_REQUEST,
@@ -23,7 +23,7 @@ impl ServiceErrorMapping for UserServiceError {
         }
     }
 
-    fn map_to_error_code(&self) -> ErrorCode {
+    fn error_code(&self) -> ErrorCode {
         match self {
             UserServiceError::UserNotFound(_) => ErrorCode::NotFound,
             UserServiceError::InvalidEmail(_) => ErrorCode::BadRequest,
@@ -33,17 +33,15 @@ impl ServiceErrorMapping for UserServiceError {
     }
 
     // Override user_message only when thiserror message is not user-friendly
-    fn user_message(&self) -> Option<String> {
+    fn user_message(&self) -> String {
         match self {
             UserServiceError::UserNotFound(_) => {
-                Some("The requested user could not be found".to_string())
+                "The requested user could not be found".to_string()
             }
-            UserServiceError::InvalidEmail(_) => {
-                Some("Please provide a valid email address".to_string())
-            }
-            UserServiceError::UserAlreadyExists => None, // Will use: "User already exists"
+            UserServiceError::InvalidEmail(_) => "Please provide a valid email address".to_string(),
+            UserServiceError::UserAlreadyExists => self.to_string(), // Will use: "User already exists"
             UserServiceError::DatabaseError(_) => {
-                Some("Unable to process your request at this time".to_string())
+                "Unable to process your request at this time".to_string()
             }
         }
     }

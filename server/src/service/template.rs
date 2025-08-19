@@ -1,5 +1,5 @@
 use crate::controller::types::templates::{CreateReq, CreateRes, GetResponse};
-use crate::response::error::{ErrorCode, ServiceErrorMapping};
+use crate::response::error::{ErrorCode, ResponseError};
 use axum::http::StatusCode;
 
 pub async fn get(id: String) -> Result<CreateRes, ServiceError> {
@@ -27,8 +27,8 @@ pub enum ServiceError {
     UnAuthorized,
 }
 
-impl ServiceErrorMapping for ServiceError {
-    fn map_to_status_code(&self) -> StatusCode {
+impl ResponseError for ServiceError {
+    fn status_code(&self) -> StatusCode {
         match self {
             ServiceError::NotFound(_) => StatusCode::NOT_FOUND,
             ServiceError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
@@ -37,7 +37,7 @@ impl ServiceErrorMapping for ServiceError {
         }
     }
 
-    fn map_to_error_code(&self) -> ErrorCode {
+    fn error_code(&self) -> ErrorCode {
         match self {
             ServiceError::NotFound(_) => ErrorCode::NotFound,
             ServiceError::InternalServerError => ErrorCode::InternalServerError,
@@ -47,15 +47,13 @@ impl ServiceErrorMapping for ServiceError {
     }
 
     // Override user_message only when thiserror message is not user-friendly
-    fn user_message(&self) -> Option<String> {
+    fn user_message(&self) -> String {
         match self {
-            ServiceError::NotFound(_) => {
-                Some("The requested template could not be found".to_string())
-            }
-            // For simple cases, return None to use thiserror message
-            ServiceError::InternalServerError => None, // Will use: "Internal server error occurred"
-            ServiceError::BadRequest => None,          // Will use: "Invalid request data"
-            ServiceError::UnAuthorized => None,        // Will use: "Authentication required"
+            ServiceError::NotFound(_) => "The requested template could not be found".to_string(),
+            // For simple cases, use thiserror message
+            ServiceError::InternalServerError => self.to_string(), // "Internal server error occurred"
+            ServiceError::BadRequest => self.to_string(),          // "Invalid request data"
+            ServiceError::UnAuthorized => self.to_string(),        // "Authentication required"
         }
     }
 

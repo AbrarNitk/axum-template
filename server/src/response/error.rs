@@ -50,17 +50,18 @@ pub trait ResponseError: std::fmt::Debug + std::fmt::Display + std::error::Error
     fn status_code(&self) -> StatusCode;
     fn error_code(&self) -> ErrorCode;
 
-    fn message(&self) -> String {
-        self.to_string()
+    // User-friendly message (can override thiserror message)
+    fn user_message(&self) -> String {
+        self.to_string() // Default: use thiserror message
     }
 
-    // Specific technical context about what happened
-    fn error_description(&self) -> Option<String> {
+    // Technical context (optional)
+    fn technical_description(&self) -> Option<String> {
         None
     }
 
-    // Full technical details with backtrace (optional, controlled by backend)
-    fn error_details(&self) -> Option<String> {
+    // Full technical details (optional, defaults to backtrace)
+    fn technical_details(&self) -> Option<String> {
         let mut backtrace = vec![];
         let mut error: &dyn std::error::Error = &self;
         while let Some(source) = error.source() {
@@ -77,78 +78,18 @@ pub trait ResponseError: std::fmt::Debug + std::fmt::Display + std::error::Error
     }
 }
 
-/// Helper trait to make it easier for service errors to implement ResponseError
-/// by providing a mapping from service error variants to HTTP status codes and error codes
-pub trait ServiceErrorMapping {
-    fn map_to_status_code(&self) -> StatusCode;
-    fn map_to_error_code(&self) -> ErrorCode;
-
-    // Optional user-friendly message override
-    // Return Some(message) to override thiserror message, None to use thiserror message
-    fn user_message(&self) -> Option<String> {
-        None
-    }
-
-    // Optional specific technical context
-    fn technical_description(&self) -> Option<String> {
-        None
-    }
-
-    // Optional full technical details (overrides default backtrace)
-    fn technical_details(&self) -> Option<String> {
-        None
-    }
-}
-
-/// Default implementation for ResponseError when a service error implements ServiceErrorMapping
-impl<T> ResponseError for T
-where
-    T: std::fmt::Debug + std::fmt::Display + std::error::Error + ServiceErrorMapping,
-{
-    fn status_code(&self) -> StatusCode {
-        self.map_to_status_code()
-    }
-
-    fn error_code(&self) -> ErrorCode {
-        self.map_to_error_code()
-    }
-
-    fn error_description(&self) -> Option<String> {
-        // Use service's technical_description if provided, otherwise fall back to ResponseError default
-        self.technical_description().or_else(|| {
-            // Call the default ResponseError implementation
-            ResponseError::error_description(self)
-        })
-    }
-
-    fn error_details(&self) -> Option<String> {
-        // Use service's technical_details if provided, otherwise fall back to ResponseError default
-        self.technical_details().or_else(|| {
-            // Call the default ResponseError implementation
-            ResponseError::error_details(self)
-        })
-    }
-}
-
 pub fn response<Err>(trace_id: &str, err: Err) -> axum::response::Response
 where
-    Err: ResponseError + ServiceErrorMapping,
+    Err: ResponseError,
 {
-    // Use user_message if provided, otherwise fallback to thiserror message
-    let message = if let Some(user_msg) = err.user_message() {
-        user_msg
-    } else {
-        err.message()
-    };
-
     ApiError {
         trace_id: trace_id.to_string(),
         timestamp: chrono::Utc::now(),
         code: err.error_code(),
         status: err.status_code(),
-        message,
-        description: err.error_description(),
-        details: err.error_details(),
+        message: err.user_message(),
+        description: err.technical_description(),
+        details: err.technical_details(),
     }
     .into_response()
 }
