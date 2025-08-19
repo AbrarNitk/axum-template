@@ -1,7 +1,7 @@
 pub async fn health_router() -> axum::Router {
     axum::Router::new().route(
         "/v1/api/health/",
-        axum::routing::get(crate::controller::health),
+        axum::routing::get(crate::controller::health::health),
     )
 }
 
